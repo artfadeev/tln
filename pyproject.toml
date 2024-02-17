@@ -1,0 +1,12 @@
+[project]
+name = "tln"
+version = "0.0.0"
+description = "TLN information management system"
+dependencies = ["click >= 8"]
+
+[build-system]    
+requires = ["flit_core<4"]    
+build-backend = "flit_core.buildapi"    
+    
+[project.scripts]    
+tln = "tln:cli"
