@@ -6,6 +6,10 @@ _sql_root = pathlib.Path(__file__).parent / "sql"
 
 queries = {
     "list": _sql_root / "list.sql",  # search and list entries from the database
+    "label_reference": _sql_root / "label_reference.sql",  # get id by label
+    "id_reference": _sql_root / "id_reference.sql",  # check that id exists
+    "mark_reference": _sql_root / "mark_reference.sql",  # get id by mark
+    "show_concept": _sql_root / "show_concept.sql",  # get concept by id
 }
 
 

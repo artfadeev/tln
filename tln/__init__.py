@@ -5,15 +5,12 @@ import sys
 import click
 
 from . import db
-
-
-class TLNException(Exception):
-    pass
+from . import ref
 
 
 @click.group()
 @click.pass_context
-@click.option("--maxwidth", default=120, type=int, help="Maximum output's width")
+@click.option("--maxwidth", default=120, type=int, help="Maximum display width")
 def cli(ctx, maxwidth):
     """TLN information management system"""
     ctx.ensure_object(dict)
@@ -53,3 +50,27 @@ def list_(ctx, query: str):
             click.echo(" " * (date_col_width + time_col_width) + line)
 
         previous_date = current_date
+
+
+@cli.command("show")
+@click.argument("reference")
+@click.pass_context
+def show(ctx, reference):
+    """Find concept by reference"""
+    connection = db.connect(ctx.obj["db_path"])
+    id_ = ref.any(connection, reference)
+
+    # TODO: proper transaction control
+    _, timestamp, label = connection.execute(
+        db.query("show_concept"), {"id": id_}
+    ).fetchone()
+
+    click.echo(f"{'Id:':12}{id_}")
+    if timestamp:
+        click.echo(f"{'Timestamp:':12}{timestamp}")
+
+    click.echo(
+        textwrap.fill(
+            " " * 12 + label, width=ctx.obj["max_width"], break_long_words=False
+        )
+    )
