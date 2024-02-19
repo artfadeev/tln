@@ -70,3 +70,39 @@ def show(ctx, reference):
         click.echo(f"Timestamp: {timestamp}")
 
     click.echo(textwrap.fill(label, width=ctx.obj["max_width"], break_long_words=False))
+
+
+@cli.command("tag")
+@click.argument("concept")
+@click.argument("tags", nargs=-1)
+@click.pass_context
+def tag(ctx, concept, tags):
+    """Tag a concept"""
+
+    if not tags:
+        exit(0)
+
+    connection = db.connect(ctx.obj["db_path"])
+    concept_id = ref.any(connection, concept)
+    tag_ids = [ref.any(connection, t) for t in tags]
+
+    connection.executemany(
+        db.query("tag_concept"),
+        [{"concept": concept_id, "tag": tag_id} for tag_id in tag_ids],
+    )
+    connection.commit()
+
+
+@cli.command("mark")
+@click.argument("concept")
+@click.argument("mark")
+@click.pass_context
+def mark(ctx, concept, mark):
+    """Mark a concept"""
+    connection = db.connect(ctx.obj["db_path"])
+    concept_id = ref.any(connection, concept)
+    if mark.startswith("."):
+        mark = mark[1:]
+
+    connection.execute(db.query("mark_concept"), {"concept": concept_id, "mark": mark})
+    connection.commit()

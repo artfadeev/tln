@@ -11,6 +11,8 @@ queries = {
     "mark_reference": _sql_root / "mark_reference.sql",  # get id by mark
     "prefix_reference": _sql_root / "prefix_reference.sql",  # get id by prefix
     "show_concept": _sql_root / "show_concept.sql",  # get concept by id
+    "tag_concept": _sql_root / "tag_concept.sql",  # tag concept
+    "mark_concept": _sql_root / "mark_concept.sql",  # mark concept
 }
 
 
