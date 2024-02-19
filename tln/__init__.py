@@ -65,12 +65,8 @@ def show(ctx, reference):
         db.query("show_concept"), {"id": id_}
     ).fetchone()
 
-    click.echo(f"{'Id:':12}{id_}")
+    click.echo(f"Id: {id_}")
     if timestamp:
-        click.echo(f"{'Timestamp:':12}{timestamp}")
+        click.echo(f"Timestamp: {timestamp}")
 
-    click.echo(
-        textwrap.fill(
-            " " * 12 + label, width=ctx.obj["max_width"], break_long_words=False
-        )
-    )
+    click.echo(textwrap.fill(label, width=ctx.obj["max_width"], break_long_words=False))

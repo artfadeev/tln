@@ -35,7 +35,18 @@ def mark(connection, mark):
 
     row = cursor.fetchone()
     if not row:
-        raise utils.ReferenceException(f"There is no mark named {mark!r}")
+        raise utils.ReferenceException(f"There is no mark named {mark!r}!")
+    return row["id"]
+
+
+def prefix(connection, prefix):
+    cursor = connection.execute(db.query("prefix_reference"), {"prefix": prefix})
+
+    row = cursor.fetchone()
+    if not row:
+        raise utils.ReferenceException(f"There is no concept with prefix {prefix!r}!")
+    if cursor.fetchone():
+        raise utils.ReferenceException(f"Several concepts match prefix {prefix!r}!")
     return row["id"]
 
 
@@ -44,4 +55,6 @@ def any(connection, reference):
         return id(connection, reference[1:])
     elif reference.startswith("."):
         return mark(connection, reference[1:])
+    elif reference.startswith("/prefix:"):
+        return prefix(connection, reference[8:])
     return label(connection, reference)
