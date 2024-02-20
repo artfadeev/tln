@@ -12,6 +12,7 @@ queries = {
     "prefix_reference": _sql_root / "prefix_reference.sql",  # get id by prefix
     "latest_reference": _sql_root
     / "latest_reference.sql",  # get id of the latest concept
+    "substring_reference": _sql_root / "substring_reference.sql",
     "show_concept": _sql_root / "show_concept.sql",  # get concept by id
     "tag_concept": _sql_root / "tag_concept.sql",  # tag concept
     "mark_concept": _sql_root / "mark_concept.sql",  # mark concept

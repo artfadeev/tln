@@ -49,6 +49,15 @@ def prefix(connection, prefix):
         raise utils.ReferenceException(f"Several concepts match prefix {prefix!r}!")
     return row["id"]
 
+def substring(connection, substring):
+    cursor = connection.execute(db.query("substring_reference"), {"substring": substring})
+
+    row = cursor.fetchone()
+    if not row:
+        raise utils.ReferenceException(f"No concept contains text {substring!r}!")
+    if cursor.fetchone():
+        raise utils.ReferenceException(f"Several concepts contain text {substring!r}!")
+    return row["id"]
 
 def latest(connection):
     cursor = connection.execute(db.query("latest_reference"))
@@ -68,6 +77,8 @@ def any(connection, reference):
         return mark(connection, reference[1:])
     elif reference.startswith("/prefix:"):
         return prefix(connection, reference[8:])
+    elif reference.startswith("//"):
+        return substring(connection, reference[2:])
     elif reference == "/":
         return latest(connection)
     return label(connection, reference)

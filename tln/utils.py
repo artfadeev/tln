@@ -3,7 +3,6 @@ class TLNException(Exception):
 
     pass
 
-
 class ReferenceException(TLNException):
     """Raised when reference lookup fails for some reason"""
 

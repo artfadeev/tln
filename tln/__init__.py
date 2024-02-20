@@ -18,7 +18,7 @@ def cli(ctx, maxwidth):
     ctx.obj["max_width"] = maxwidth
 
     if not ctx.obj["db_path"]:
-        print(f"$TLN_DB is not set. Aborting.", file=stderr)
+        click.echo(f"$TLN_DB is not set. Aborting.", err=True)
         sys.exit(1)
 
 
@@ -53,10 +53,15 @@ def list_(ctx, query: str):
 
 
 @cli.command("show")
-@click.argument("reference")
+@click.argument("reference", nargs=-1)
 @click.pass_context
 def show(ctx, reference):
     """Find concept by reference"""
+    if not reference:
+        click.echo("No reference given.", err=True)
+        exit(1)
+    reference = " ".join(reference)
+
     connection = db.connect(ctx.obj["db_path"])
     id_ = ref.any(connection, reference)
 
