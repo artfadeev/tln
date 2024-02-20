@@ -16,6 +16,7 @@ queries = {
     "show_concept": _sql_root / "show_concept.sql",  # get concept by id
     "tag_concept": _sql_root / "tag_concept.sql",  # tag concept
     "mark_concept": _sql_root / "mark_concept.sql",  # mark concept
+    "add_concept": _sql_root / "add_concept.sql",  # add concept
 }
 
 

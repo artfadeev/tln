@@ -1,11 +1,13 @@
 import textwrap
 import os
 import sys
+import datetime
 
 import click
 
 from . import db
 from . import ref
+from . import utils
 
 
 @click.group()
@@ -110,4 +112,31 @@ def mark(ctx, concept, mark):
         mark = mark[1:]
 
     connection.execute(db.query("mark_concept"), {"concept": concept_id, "mark": mark})
+    connection.commit()
+
+
+@cli.command("add")
+@click.argument("label", nargs=-1)
+@click.option("--id", type=str, default=None, help="id of the concept")
+@click.option(
+    "--editor", is_flag=True, default=False, help="Launch editor to edit the label"
+)
+@click.pass_context
+def add(ctx, label, editor, id):
+    """Add a concept"""
+    label = " ".join(label)
+    if editor:
+        label = click.edit(label).strip()
+    if not label:
+        click.echo("Empty label is not allowed.", err=True)
+        exit(1)
+
+    id = id or utils.generate_id()
+    timestamp = datetime.datetime.now()
+
+    connection = db.connect(ctx.obj["db_path"])
+    # TODO: hope id is unique!
+    connection.execute(
+        db.query("add_concept"), {"id": id, "timestamp": timestamp, "label": label}
+    )
     connection.commit()
