@@ -50,6 +50,17 @@ def prefix(connection, prefix):
     return row["id"]
 
 
+def latest(connection):
+    cursor = connection.execute(db.query("latest_reference"))
+
+    row = cursor.fetchone()
+    if not row:
+        raise utils.ReferenceException(
+            f"There are no timestamped concepts in the database!"
+        )
+    return row["id"]
+
+
 def any(connection, reference):
     if reference.startswith("@"):
         return id(connection, reference[1:])
@@ -57,4 +68,6 @@ def any(connection, reference):
         return mark(connection, reference[1:])
     elif reference.startswith("/prefix:"):
         return prefix(connection, reference[8:])
+    elif reference == "/":
+        return latest(connection)
     return label(connection, reference)
