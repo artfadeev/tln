@@ -26,12 +26,13 @@ def cli(ctx, maxwidth):
 
 @cli.command("list")
 @click.argument("query", required=False, default="")
+@click.option("-t", "--tagged", "tags", multiple=True, help="Filter by these tags")
 @click.pass_context
-def list_(ctx, query: str):
+def list_(ctx, query: str, tags: tuple):
     """Print entries from the database"""
-    cursor = db.connect(ctx.obj["db_path"]).execute(
-        db.query("list"), {"query": query.lower()}
-    )
+    connection = db.connect(ctx.obj["db_path"])
+    tag_ids = set(ref.any(connection, tag) for tag in tags)
+    cursor = db.list_concepts(connection, query, tag_ids)
 
     previous_date = None
     date_col_width = 11  # "1970.01.01 "
@@ -87,6 +88,7 @@ def tag(ctx, concept, tags):
     """Tag a concept"""
 
     if not tags:
+        click.echo("(no tags given, exiting)", err=True)
         exit(0)
 
     connection = db.connect(ctx.obj["db_path"])

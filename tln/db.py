@@ -17,6 +17,9 @@ queries = {
     "tag_concept": _sql_root / "tag_concept.sql",  # tag concept
     "mark_concept": _sql_root / "mark_concept.sql",  # mark concept
     "add_concept": _sql_root / "add_concept.sql",  # add concept
+    "list_with_tag_filters": _sql_root / "list_with_tag_filters.sql",
+    "selected_tags_create": _sql_root / "selected_tags_create.sql",
+    "selected_tags_insert": _sql_root / "selected_tags_insert.sql",
 }
 
 
@@ -29,3 +32,16 @@ def connect(path):
     connection = sqlite3.connect(path, detect_types=sqlite3.PARSE_DECLTYPES)
     connection.row_factory = sqlite3.Row
     return connection
+
+
+def list_concepts(connection, search_query: str, tags: set[str]):
+    if not tags:
+        return connection.execute(query("list"), {"query": search_query.lower()})
+
+    connection.execute(query("selected_tags_create"))
+    connection.executemany(
+        query("selected_tags_insert"), ({"id": tag_id} for tag_id in tags)
+    )
+    return connection.execute(
+        query("list_with_tag_filters"), {"query": search_query.lower()}
+    )
