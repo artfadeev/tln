@@ -13,12 +13,13 @@ from . import utils
 
 @click.group()
 @click.pass_context
-@click.option("--maxwidth", default=120, type=int, help="Maximum display width")
-def cli(ctx, maxwidth):
+@click.option("--max_width", default=120, type=int, help="Maximum display width")
+@click.option("--db_path", default=None, type=click.Path(), help="Path to the database")
+def cli(ctx, max_width, db_path):
     """TLN information management system"""
     ctx.ensure_object(dict)
-    ctx.obj["db_path"] = os.environ.get("TLN_DB", None)
-    ctx.obj["max_width"] = maxwidth
+    ctx.obj["db_path"] = db_path or os.environ.get("TLN_DB", None)
+    ctx.obj["max_width"] = max_width
 
 
 @cli.command("list")
@@ -177,3 +178,10 @@ def init(path):
 
     click.echo(f"Successfully initiated database at {path}!")
     click.echo(f"Now set $TLN_DB environmental variable.")
+
+
+@cli.command("path")
+@utils.requires_db
+def init(ctx):
+    """Get path to the database"""
+    click.echo(ctx.obj["db_path"])
