@@ -6,7 +6,8 @@ dependencies = ["click >= 8"]
 
 [project.optional-dependencies]
 dev = [
-    "pytest"
+    "pytest >= 8",
+    "coverage"
 ]
 
 [build-system]    
@@ -15,3 +16,10 @@ build-backend = "flit_core.buildapi"
     
 [project.scripts]    
 tln = "tln:cli"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["tln"]

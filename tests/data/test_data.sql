@@ -32,17 +32,18 @@ create table marks (
 
 insert into relation_t values ('tagged'), ('subtag_of'), ('is');
 insert into concepts values ('tln/is_tag', null, 'tag');
+insert into relations values ('tln/is_tag', 'tagged', 'tln/is_tag');
 
 
 -- Test data
 insert into concepts values
-    ('capital_of_uk', '2000-01-01 12:34', 'London is the capital of Great Britain'),
-    ('moscow_fact', '2005-02-28 00:15', 'Moscow is the largest city in Russia'),
-    ('cool_park', '1999-12-31 23:59', 'Central Park is a very famous park worth visiting'),
-    ('space_travel', '2020-03-01 10:20', 'todo: go into space'),
-    ('unrelated_fact', '2021-01-02 12:32', 'Panda bears may be dangerous'),
-    ('vacation2012', '2012-08-30', 'I visited Spain'),
-    ('vacation2014', '2014-07-15', 'i visited Spain'),
+    ('capital_of_uk', '2000-01-01 12:34:12', 'London is the capital of Great Britain'),
+    ('moscow_fact', '2005-02-28 00:15:30', 'Moscow is the largest city in Russia'),
+    ('cool_park', '1999-12-31 23:59:59', 'Central Park is a very famous park worth visiting'),
+    ('space_travel', '2020-03-01 10:20:30', 'todo: go into space'),
+    ('unrelated_fact', '2021-01-02 12:32:22', 'Panda bears may be dangerous'),
+    ('vacation2012', '2012-08-30 01:01:01', 'I visited Spain'),
+    ('vacation2014', '2014-07-15 02:02:02', 'i visited Spain'),
 
     ('tag_london', null, 'london'),
     ('tag_moscow', null, 'moscow'),
