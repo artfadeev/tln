@@ -2,6 +2,7 @@ import textwrap
 import os
 import sys
 import datetime
+import pathlib
 
 import click
 
@@ -19,15 +20,11 @@ def cli(ctx, maxwidth):
     ctx.obj["db_path"] = os.environ.get("TLN_DB", None)
     ctx.obj["max_width"] = maxwidth
 
-    if not ctx.obj["db_path"]:
-        click.echo(f"$TLN_DB is not set. Aborting.", err=True)
-        sys.exit(1)
-
 
 @cli.command("list")
 @click.argument("query", required=False, default="")
 @click.option("-t", "--tagged", "tags", multiple=True, help="Filter by these tags")
-@click.pass_context
+@utils.requires_db
 def list_(ctx, query: str, tags: tuple):
     """Print entries from the database"""
     connection = db.connect(ctx.obj["db_path"])
@@ -57,7 +54,7 @@ def list_(ctx, query: str, tags: tuple):
 
 @cli.command("show")
 @click.argument("reference", nargs=-1)
-@click.pass_context
+@utils.requires_db
 def show(ctx, reference):
     """Find concept by reference"""
     if not reference:
@@ -88,7 +85,7 @@ def show(ctx, reference):
 @cli.command("tag")
 @click.argument("concept")
 @click.argument("tags", nargs=-1)
-@click.pass_context
+@utils.requires_db
 def tag(ctx, concept, tags):
     """Tag a concept"""
 
@@ -111,7 +108,7 @@ def tag(ctx, concept, tags):
 @click.argument("subject")
 @click.argument("relation")
 @click.argument("object")
-@click.pass_context
+@utils.requires_db
 def relation(ctx, subject, relation, object):
     """Add a relation between concepts"""
     connection = db.connect(ctx.obj["db_path"])
@@ -128,7 +125,7 @@ def relation(ctx, subject, relation, object):
 @cli.command("mark")
 @click.argument("concept")
 @click.argument("mark")
-@click.pass_context
+@utils.requires_db
 def mark(ctx, concept, mark):
     """Mark a concept"""
     connection = db.connect(ctx.obj["db_path"])
@@ -146,7 +143,7 @@ def mark(ctx, concept, mark):
 @click.option(
     "--editor", is_flag=True, default=False, help="Launch editor to edit the label"
 )
-@click.pass_context
+@utils.requires_db
 def add(ctx, label, editor, id):
     """Add a concept"""
     label = " ".join(label)
@@ -165,3 +162,18 @@ def add(ctx, label, editor, id):
         db.query("add_concept"), {"id": id, "timestamp": timestamp, "label": label}
     )
     connection.commit()
+
+
+@cli.command("init")
+@click.argument("path", type=click.Path(dir_okay=False, path_type=pathlib.Path))
+def init(path):
+    """Initialize the database"""
+    if path.exists():
+        click.echo(f"File {path} already exists. Delete it first!", err=True)
+        exit(1)
+    connection = db.connect(path)
+    connection.executescript(db.query("schema"))
+    connection.commit()
+
+    click.echo(f"Successfully initiated database at {path}!")
+    click.echo(f"Now set $TLN_DB environmental variable.")

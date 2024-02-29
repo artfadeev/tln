@@ -23,6 +23,7 @@ create table relations (
     relation        text,
     object          text,
 
+    primary key (subject, relation, object),
     foreign key (subject) references concepts(id),
     foreign key (relation) references relation_t(relation),
     foreign key (object) references concepts(id)
