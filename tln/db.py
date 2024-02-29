@@ -17,9 +17,6 @@ def connect(path):
 
 
 def list_concepts(connection, search_query: str, tags: set[str]):
-    if not tags:
-        return connection.execute(query("list"), {"query": search_query.lower()})
-
     connection.execute(query("selected_tags_create"))
     connection.executemany(
         query("selected_tags_insert"), ({"id": tag_id} for tag_id in tags)

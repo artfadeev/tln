@@ -73,11 +73,16 @@ def show(ctx, reference):
         db.query("show_concept"), {"id": id_}
     ).fetchone()
 
-    click.echo(f"Id: {id_}")
+    click.echo(id_)
     if timestamp:
-        click.echo(f"Timestamp: {timestamp}")
+        click.echo(timestamp)
 
+    click.echo()
     click.echo(textwrap.fill(label, width=ctx.obj["max_width"], break_long_words=False))
+    click.echo()
+
+    for row in connection.execute(db.query("show_relations"), {"id": id_}):
+        click.echo(f"{row['relation']}: {row['label']}")
 
 
 @cli.command("tag")
@@ -114,7 +119,7 @@ def relation(ctx, subject, relation, object):
     object_id = ref.any(connection, object)
 
     connection.execute(
-        query("insert_relation"),
+        db.query("insert_relation"),
         {"subject": subject_id, "relation": relation, "object": object_id},
     )
     connection.commit()
