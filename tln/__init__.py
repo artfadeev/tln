@@ -102,6 +102,24 @@ def tag(ctx, concept, tags):
     connection.commit()
 
 
+@cli.command("relation")
+@click.argument("subject")
+@click.argument("relation")
+@click.argument("object")
+@click.pass_context
+def relation(ctx, subject, relation, object):
+    """Add a relation between concepts"""
+    connection = db.connect(ctx.obj["db_path"])
+    subject_id = ref.any(connection, subject)
+    object_id = ref.any(connection, object)
+
+    connection.execute(
+        query("insert_relation"),
+        {"subject": subject_id, "relation": relation, "object": object_id},
+    )
+    connection.commit()
+
+
 @cli.command("mark")
 @click.argument("concept")
 @click.argument("mark")
