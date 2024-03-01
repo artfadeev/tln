@@ -5,10 +5,31 @@ import datetime
 import pathlib
 
 import click
+from click.shell_completion import CompletionItem
 
 from . import db
 from . import ref
 from . import utils
+
+
+class ReferenceType(click.ParamType):
+    name = "reference"
+
+    def shell_complete(self, ctx, param, incomplete):
+        if not incomplete:
+            return []
+
+        db_path = os.environ.get("TLN_DB", None)
+        if not db_path:
+            return []
+        connection = db.connect(db_path)
+
+        return [
+            CompletionItem(text, help=help)
+            for (text, help) in ref.complete_any(
+                connection, incomplete, allow_whitespace=False
+            )
+        ]
 
 
 @click.group()
@@ -24,7 +45,14 @@ def cli(ctx, max_width, db_path):
 
 @cli.command("list")
 @click.argument("query", required=False, default="")
-@click.option("-t", "--tagged", "tags", multiple=True, help="Filter by these tags")
+@click.option(
+    "-t",
+    "--tagged",
+    "tags",
+    type=ReferenceType(),
+    multiple=True,
+    help="Filter by these tags",
+)
 @utils.requires_db
 def list_(ctx, query: str, tags: tuple):
     """Print entries from the database"""
@@ -54,7 +82,7 @@ def list_(ctx, query: str, tags: tuple):
 
 
 @cli.command("show")
-@click.argument("reference", nargs=-1)
+@click.argument("reference", type=ReferenceType(), nargs=-1)
 @utils.requires_db
 def show(ctx, reference):
     """Find concept by reference"""
@@ -84,8 +112,8 @@ def show(ctx, reference):
 
 
 @cli.command("tag")
-@click.argument("concept")
-@click.argument("tags", nargs=-1)
+@click.argument("concept", type=ReferenceType())
+@click.argument("tags", type=ReferenceType(), nargs=-1)
 @utils.requires_db
 def tag(ctx, concept, tags):
     """Tag a concept"""
@@ -106,9 +134,9 @@ def tag(ctx, concept, tags):
 
 
 @cli.command("relation")
-@click.argument("subject")
+@click.argument("subject", type=ReferenceType())
 @click.argument("relation")
-@click.argument("object")
+@click.argument("object", type=ReferenceType())
 @utils.requires_db
 def relation(ctx, subject, relation, object):
     """Add a relation between concepts"""
@@ -124,7 +152,7 @@ def relation(ctx, subject, relation, object):
 
 
 @cli.command("mark")
-@click.argument("concept")
+@click.argument("concept", type=ReferenceType())
 @click.argument("mark")
 @utils.requires_db
 def mark(ctx, concept, mark):
@@ -182,6 +210,6 @@ def init(path):
 
 @cli.command("path")
 @utils.requires_db
-def init(ctx):
+def path(ctx):
     """Get path to the database"""
     click.echo(ctx.obj["db_path"])

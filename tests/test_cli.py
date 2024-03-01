@@ -5,7 +5,7 @@ import pytest
 from click.testing import CliRunner
 import click
 
-from tln import cli
+from tln import cli, ReferenceType
 
 
 def provide_db(function):
@@ -179,3 +179,20 @@ def test_no_db(data_path, monkeypatch, runner=None):
     monkeypatch.delenv("TLN_DB", raising=False)
 
     assert runner.invoke(cli, ["list"]).exit_code != 0
+
+
+@provide_db
+def test_ReferenceType(data_path, monkeypatch, runner=None):
+    monkeypatch.setenv("TLN_DB", "test.db")
+    r = ReferenceType()
+    result = r.shell_complete(None, None, ".ms")
+    assert len(result) == 1
+    assert result[0].value == ".msk"
+    assert result[0].help.startswith("Moscow")
+
+    assert not r.shell_complete(None, None, "asdfsfas")
+    assert not r.shell_complete(None, None, "")
+
+    monkeypatch.delenv("TLN_DB")
+    r = ReferenceType()
+    assert not r.shell_complete(None, None, ".ms")
