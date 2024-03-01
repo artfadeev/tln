@@ -27,7 +27,7 @@ def requires_db(function):
     def wrapped(ctx, *args, **kwargs):
         if not ctx.obj["db_path"]:
             click.echo(f"$TLN_DB is not set. Aborting.", err=True)
-            sys.exit(1)
+            exit(1)
 
         return function(ctx, *args, **kwargs)
 

@@ -18,7 +18,7 @@ from . import utils
 def cli(ctx, max_width, db_path):
     """TLN information management system"""
     ctx.ensure_object(dict)
-    ctx.obj["db_path"] = db_path or os.environ.get("TLN_DB", None)
+    ctx.obj["db_path"] = db_path
     ctx.obj["max_width"] = max_width
 
 
@@ -177,7 +177,7 @@ def init(path):
     connection.commit()
 
     click.echo(f"Successfully initiated database at {path}!")
-    click.echo(f"Now set $TLN_DB environmental variable.")
+    click.echo(f"Provide --db_path to use this database")
 
 
 @cli.command("path")
