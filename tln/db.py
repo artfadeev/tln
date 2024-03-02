@@ -1,3 +1,4 @@
+"""Management of underlying SQL database"""
 import sqlite3
 import pathlib
 import functools
@@ -7,6 +8,7 @@ _sql_root = pathlib.Path(__file__).parent / "sql"
 
 @functools.cache
 def query(name):
+    """Retrieve SQL query text from filesystem"""
     return (_sql_root / f"{name}.sql").read_text()
 
 
