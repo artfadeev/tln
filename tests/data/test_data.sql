@@ -30,9 +30,26 @@ create table marks (
     foreign key (value) references concepts(id)
 );
 
+create table folds (
+    next            text, -- was left_
+    path            text, -- was right_
+    result          text,
+
+    primary key (next, path, result),
+
+    foreign key (next) references relation_t(relation),
+    foreign key (path) references relation_t(relation),
+    foreign key (result) references relation_t(relation)
+);
+
 insert into relation_t values ('tagged'), ('subtag_of'), ('is');
 insert into concepts values ('tln/is_tag', null, 'tag');
 insert into relations values ('tln/is_tag', 'tagged', 'tln/is_tag');
+insert into folds (next, path, result) values
+    ('tagged', 'is', 'tagged'),
+    ('subtag_of', 'is', 'subtag_of'),
+    ('tagged', 'subtag_of', 'tagged'),
+    ('subtag_of', 'subtag_of', 'subtag_of');
 
 
 -- Test data

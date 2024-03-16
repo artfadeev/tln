@@ -18,11 +18,25 @@ def connect(path):
     return connection
 
 
-def list_concepts(connection, search_query: str, tags: set[str]):
-    connection.execute(query("selected_tags_create"))
-    connection.executemany(
-        query("selected_tags_insert"), ({"id": tag_id} for tag_id in tags)
-    )
-    return connection.execute(
-        query("list_with_tag_filters"), {"query": search_query.lower()}
-    )
+def filter_concepts(
+    connection, search_query: str, relations_query: set[tuple[str, str, bool]]
+):
+    """
+    relations_query contains tuples of form (relation, target_object_id, present)
+    """
+    connection.executescript(query("list/initialize_queries"))
+
+    if relations_query:
+        connection.executemany(
+            query("list/insert_relations_query"),
+            (
+                {"relation": relation, "object": object, "present": int(present)}
+                for relation, object, present in relations_query
+            ),
+        )
+    if search_query:
+        connection.execute(
+            query("list/insert_substring_query"), {"search_query": search_query.lower()}
+        )
+
+    connection.executescript(query("list/list"))

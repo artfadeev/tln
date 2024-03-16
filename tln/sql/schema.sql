@@ -30,14 +30,14 @@ create table relations (
 );
 
 create table folds (
-    left_           text,
-    right_          text,
+    next            text, -- was left_
+    path            text, -- was right_
     result          text,
 
-    primary key (left_, right_, result),
+    primary key (next, path, result),
 
-    foreign key (left_) references relation_t(relation),
-    foreign key (right_) references relation_t(relation),
+    foreign key (next) references relation_t(relation),
+    foreign key (path) references relation_t(relation),
     foreign key (result) references relation_t(relation)
 );
 
@@ -51,6 +51,8 @@ create table marks (
 
 insert into relation_t values ("tagged"), ("subtag_of"), ("is");
 insert into concepts values ("tln/is_tag", null, "tag");
-insert into folds (left_, right_, result) values
+insert into folds (next, path, result) values
+    ('tagged', 'is', 'tagged'),
+    ('subtag_of', 'is', 'subtag_of'),
     ('tagged', 'subtag_of', 'tagged'),
     ('subtag_of', 'subtag_of', 'subtag_of');

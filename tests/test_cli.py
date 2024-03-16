@@ -87,6 +87,37 @@ def test_basic_list(data_path, runner=None):
 
 
 @provide_db
+def test_ids_formatter(data_path, runner=None):
+    result = runner.invoke(
+        cli, ["--db_path", "test.db", "list", "-T", "tag", "--format", "ids"]
+    )
+    assert result.output.splitlines() == [
+        "cool_park",
+        "capital_of_uk",
+        "moscow_fact",
+        "vacation2012",
+        "vacation2014",
+        "space_travel",
+        "unrelated_fact",
+    ]
+
+    result = runner.invoke(
+        cli,
+        [
+            "--db_path",
+            "test.db",
+            "list",
+            "--relation",
+            "subtag_of",
+            "@tag_usa",
+            "--format",
+            "ids",
+        ],
+    )
+    assert set(result.output.splitlines()) == {"tag_manhattan", "tag_newyork"}
+
+
+@provide_db
 def test_init(data_path, runner=None):
     assert runner.invoke(cli, ["init", "test.db"]).exit_code != 0
     assert runner.invoke(cli, ["init", "new_test.db"]).exit_code == 0

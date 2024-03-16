@@ -10,6 +10,7 @@ from click.shell_completion import CompletionItem
 from . import db
 from . import ref
 from . import utils
+from . import cli_formatters
 
 
 class ReferenceType(click.ParamType):
@@ -59,40 +60,50 @@ def cli(ctx, max_width, db_path):
 @click.option(
     "-t",
     "--tagged",
-    "tags",
+    "tagged",
     type=ReferenceType(),
     multiple=True,
     help="Filter by these tags",
 )
+@click.option(
+    "-T",
+    "--not-tagged",
+    "not_tagged",
+    type=ReferenceType(),
+    multiple=True,
+    help="Exclude concepts tagged by these tags",
+)
+@click.option(
+    "-r", "--relation", "relation", type=(str, ReferenceType()), multiple=True
+)
+@click.option(
+    "-R", "--not-relation", "not_relation", type=(str, ReferenceType()), multiple=True
+)
+@click.option(
+    "-f",
+    "--format",
+    required=False,
+    type=click.Choice(cli_formatters.formatters.keys()),
+    default="default",
+)
 @utils.requires_db
-def list_(ctx, query: str, tags: tuple):
+def list_(
+    ctx, query: str, tagged: tuple, not_tagged: tuple, format, relation, not_relation
+):
     """List concepts from the database in chronological order
 
     If query is given, it will be used for label text search.
     """
     connection = db.connect(ctx.obj["db_path"])
-    tag_ids = set(ref.any(connection, tag) for tag in tags)
-    cursor = db.list_concepts(connection, query, tag_ids)
+    relations_query = (
+        {("tagged", ref.any(connection, tag), True) for tag in tagged}
+        | {("tagged", ref.any(connection, tag), False) for tag in not_tagged}
+        | {(rel, ref.any(connection, obj), True) for rel, obj in relation}
+        | {(rel, ref.any(connection, obj), False) for rel, obj in not_relation}
+    )
+    db.filter_concepts(connection, query, relations_query)
 
-    previous_date = None
-    date_col_width = 11  # "1970.01.01 "
-    time_col_width = 6  # "12:34 "
-    for row in cursor:
-        current_date = row["timestamp"].strftime("%Y.%m.%d") if row["timestamp"] else ""
-        time = row["timestamp"].strftime("%H:%M") if row["timestamp"] else ""
-        click.echo(f"{current_date*(current_date!=previous_date):11}{time:6}", nl=False)
-
-        text = (f"[{row['tags']}] " if row["tags"] else "") + row["label"]
-        lines = textwrap.wrap(
-            text,
-            width=ctx.obj["max_width"] - date_col_width - time_col_width,
-            break_long_words=False,  # don't break links
-        )
-        click.echo(lines[0])
-        for line in lines[1:]:
-            click.echo(" " * (date_col_width + time_col_width) + line)
-
-        previous_date = current_date
+    return cli_formatters.formatters[format](ctx, connection)
 
 
 @cli.command("show")
