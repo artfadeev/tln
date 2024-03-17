@@ -1,5 +1,6 @@
 import sqlite3
 import functools
+import re
 
 import pytest
 from click.testing import CliRunner
@@ -122,16 +123,19 @@ def test_init(data_path, runner=None):
     assert runner.invoke(cli, ["init", "test.db"]).exit_code != 0
     assert runner.invoke(cli, ["init", "new_test.db"]).exit_code == 0
 
-    def invoke(*args):
-        return runner.invoke(cli, ["--db_path", "new_test.db", *args])
+    def invoke(*args, check_exit_code=True):
+        result = runner.invoke(cli, ["--db_path", "new_test.db", *args])
+        if check_exit_code:
+            assert result.exit_code == 0
+        return result
 
     assert len(invoke("list").output.splitlines()) == 1
 
-    assert invoke("show", "/").exit_code == 1
+    assert invoke("show", "/", check_exit_code=False).exit_code == 1
 
     # insert new element
-    assert invoke("add", "Hello world!").exit_code == 0
-    assert invoke("add", "--id", "second", "Another hello!").exit_code == 0
+    invoke("add", "Hello world!")
+    invoke("add", "--id", "second", "Another hello!")
 
     assert "second" in invoke("show", "/").output
 
@@ -227,3 +231,50 @@ def test_ReferenceType(data_path, monkeypatch, runner=None):
     monkeypatch.delenv("TLN_DB")
     r = ReferenceType()
     assert not r.shell_complete(None, None, ".ms")
+
+
+@provide_db
+def test_tags_formatter(data_path, runner=None):
+    assert runner.invoke(cli, ["init", "tags_test.db"]).exit_code == 0
+
+    def invoke(*args, check_exit_code=True):
+        result = runner.invoke(cli, ["--db_path", "tags_test.db", *args])
+        if check_exit_code:
+            assert result.exit_code == 0
+        return result
+
+    for tag in [
+        "grandparent_tag",
+        "parent_tag",
+        "another_parent_tag",
+        "child_tag",
+        "unrelated_tag",
+    ]:
+        invoke("add", tag)
+        invoke("tag", "/", "tag")
+    invoke("relation", "child_tag", "subtag_of", "parent_tag")
+    invoke("relation", "child_tag", "subtag_of", "another_parent_tag")
+    invoke("relation", "parent_tag", "subtag_of", "grandparent_tag")
+    invoke("relation", "another_parent_tag", "subtag_of", "grandparent_tag")
+
+    invoke("add", "first")
+    invoke(
+        "tag",
+        "/",
+        "child_tag",
+    )
+    invoke("add", "second")
+    invoke("tag", "/", "parent_tag")
+    invoke("add", "third")
+    invoke("tag", "/", "grandparent_tag")
+    invoke("add", "fourth")
+    invoke("tag", "/", "grandparent_tag")
+
+    lines = invoke("list", "_tag", "--format", "tags").output.splitlines()
+    assert len(lines) == 6
+    assert re.match("^grandparent_tag.*2.*$", lines[0])
+    assert re.match("^[ ]{4}parent_tag.*1.*$", lines[1])
+    assert re.match("^[ ]{8}child_tag.*1.*$", lines[2])
+    assert re.match("^[ ]{4}another_parent_tag.*0.*$", lines[3])
+    assert re.match("^[ ]{8}child_tag.*1.*see above.*$", lines[4])
+    assert re.match("^unrelated_tag.*0.*$", lines[-1])

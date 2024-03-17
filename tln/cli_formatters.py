@@ -42,3 +42,38 @@ def list_default(ctx, connection):
 def list_ids(ctx, connection):
     for row in connection.execute(db.query("formatters/ids")):
         click.echo(row["id"])
+
+
+@register_formatter("tags")
+def list_hierarchy(ctx, connection):
+    top_level = set()  # tags which are not subtags of other tags
+    labels = {}  # get label of tag by id
+    children = defaultdict(set)  # ids of subtags by tag id
+    count = {}  # number of concepts directly tagged by this tag
+
+    for id, label, directly_tagged in connection.execute(
+        db.query("formatters/tags_info")
+    ):
+        top_level.add(id)
+        labels[id] = label
+        count[id] = directly_tagged
+
+    for subject, object in connection.execute(db.query("formatters/tags_subtag_pairs")):
+        top_level -= {subject}
+        children[object].add(subject)
+
+    # depth-first search
+    were = set()
+
+    def show(id, level=0):
+        nonlocal were
+        if id in were:
+            return click.echo(f'{"    "*level}{labels[id]} ({count[id]}, see above)')
+
+        click.echo(f'{"    "*level}{labels[id]} ({count[id]})')
+        were.add(id)
+        for child in sorted(children[id], key=count.__getitem__, reverse=True):
+            show(child, level + 1)
+
+    for id in sorted(top_level, key=count.__getitem__, reverse=True):
+        show(id)
