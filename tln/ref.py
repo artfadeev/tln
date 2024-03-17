@@ -106,9 +106,22 @@ def complete_substring(connection, prefix, allow_whitespace=False):
 
 @_error_handler("latest")
 def latest(connection, query=""):
-    if query:
-        raise utils.ReferenceException("Latest reference doesn't take queries")
-    return connection.execute(db.query("reference/latest"))
+    if query == "" or query is None:
+        query = "1"
+
+    try:
+        n = int(query)
+    except Exception:
+        raise utils.ReferenceException(
+            f"Latest reference expected positive integer as its argument, got {query}"
+        )
+
+    if n <= 0:
+        raise utils.ReferenceException(
+            f"Latest reference expected positive integer, got {n}"
+        )
+
+    return connection.execute(db.query("reference/latest"), {"offset": n - 1})
 
 
 def complete_none(*args, **kwargs):

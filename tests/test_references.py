@@ -56,6 +56,12 @@ def test_substring_reference(geo_db):
 
 def test_latest_reference(geo_db):
     assert ref.latest(geo_db) == "unrelated_fact"
+    assert ref.latest(geo_db, "1") == "unrelated_fact"
+    assert ref.latest(geo_db, "2") == "space_travel"
+
+    for incorrect in ["abra", "-100", "0"]:
+        with pytest.raises(ReferenceException):
+            ref.latest(geo_db, incorrect)
 
 
 def test_any_reference(geo_db):
