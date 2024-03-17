@@ -41,14 +41,14 @@ def label(connection, label):
     """Label reference: select concept by its label text"""
 
     # TODO: case conversion works only for ASCII
-    return connection.execute(db.query("label_reference"), {"label": label.lower()})
+    return connection.execute(db.query("reference/label"), {"label": label.lower()})
 
 
 def complete_label(connection, prefix, allow_whitespace=False):
     return [
         CompletionSuggestion(row["label"], help=None)
         for row in connection.execute(
-            db.query("complete_label"),
+            db.query("complete/label"),
             {"prefix": prefix.lower(), "allow_whitespace": allow_whitespace},
         )
     ]
@@ -56,14 +56,14 @@ def complete_label(connection, prefix, allow_whitespace=False):
 
 @_error_handler("id")
 def id(connection, id):
-    return connection.execute(db.query("id_reference"), {"id": id})
+    return connection.execute(db.query("reference/id"), {"id": id})
 
 
 def complete_id(connection, prefix, allow_whitespace=False):
     return [
         CompletionSuggestion(row["id"], help=row["label"])
         for row in connection.execute(
-            db.query("complete_id"),
+            db.query("complete/id"),
             {"prefix": prefix, "allow_whitespace": allow_whitespace},
         )
     ]
@@ -71,14 +71,14 @@ def complete_id(connection, prefix, allow_whitespace=False):
 
 @_error_handler("mark")
 def mark(connection, mark):
-    return connection.execute(db.query("mark_reference"), {"mark": mark})
+    return connection.execute(db.query("reference/mark"), {"mark": mark})
 
 
 def complete_mark(connection, prefix, allow_whitespace=False):
     return [
         CompletionSuggestion(row["name"], help=row["label"])
         for row in connection.execute(
-            db.query("complete_mark"),
+            db.query("complete/mark"),
             {"prefix": prefix, "allow_whitespace": allow_whitespace},
         )
     ]
@@ -86,29 +86,29 @@ def complete_mark(connection, prefix, allow_whitespace=False):
 
 @_error_handler("prefix")
 def prefix(connection, prefix):
-    return connection.execute(db.query("prefix_reference"), {"prefix": prefix})
+    return connection.execute(db.query("reference/prefix"), {"prefix": prefix})
 
 
 @_error_handler("substring")
 def substring(connection, substring):
-    return connection.execute(db.query("substring_reference"), {"substring": substring})
+    return connection.execute(db.query("reference/substring"), {"substring": substring})
 
 
 def complete_substring(connection, prefix, allow_whitespace=False):
     return [
         CompletionSuggestion(row["label_suffix"], help=row["label"])
         for row in connection.execute(
-            db.query("complete_substring"),
+            db.query("complete/substring"),
             {"prefix": prefix.lower(), "allow_whitespace": allow_whitespace},
         )
     ]
 
 
 @_error_handler("latest")
-def latest(connection, query=None):
+def latest(connection, query=""):
     if query:
         raise utils.ReferenceException("Latest reference doesn't take queries")
-    return connection.execute(db.query("latest_reference"))
+    return connection.execute(db.query("reference/latest"))
 
 
 def complete_none(*args, **kwargs):

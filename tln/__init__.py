@@ -169,8 +169,11 @@ def tag(ctx, concept, tags):
     tag_ids = [ref.any(connection, t) for t in tags]
 
     connection.executemany(
-        db.query("tag_concept"),
-        [{"concept": concept_id, "tag": tag_id} for tag_id in tag_ids],
+        db.query("insert_relation"),
+        [
+            {"subject": concept_id, "relation": "tagged", "object": tag_id}
+            for tag_id in tag_ids
+        ],
     )
     connection.commit()
 
