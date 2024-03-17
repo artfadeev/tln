@@ -6,7 +6,7 @@ import pytest
 from click.testing import CliRunner
 import click
 
-from tln import cli, ReferenceType
+from tln import cli, ReferenceType, RelationType
 
 
 def provide_db(function):
@@ -231,6 +231,18 @@ def test_ReferenceType(data_path, monkeypatch, runner=None):
     monkeypatch.delenv("TLN_DB")
     r = ReferenceType()
     assert not r.shell_complete(None, None, ".ms")
+
+
+@provide_db
+def test_RelationType(data_path, monkeypatch, runner=None):
+    monkeypatch.setenv("TLN_DB", "test.db")
+    r = RelationType()
+    result = r.shell_complete(None, None, "t")
+    assert len(result) == 1
+    assert result[0].value == "tagged"
+
+    result = r.shell_complete(None, None, "")
+    assert {entry.value for entry in result} == {"is", "tagged", "subtag_of"}
 
 
 @provide_db

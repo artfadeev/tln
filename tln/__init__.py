@@ -44,6 +44,23 @@ class ReferenceType(click.ParamType):
         ]
 
 
+class RelationType(click.ParamType):
+    name = "relation"
+
+    def shell_complete(self, ctx, param, incomplete):
+        db_path = os.environ.get("TLN_DB", None)
+        if not db_path:
+            return []
+        connection = db.connect(db_path)
+
+        return [
+            CompletionItem(suggestion)
+            for suggestion, in connection.execute(
+                db.query("complete/relation"), {"prefix": incomplete}
+            )
+        ]
+
+
 @click.group()
 @click.pass_context
 @click.option("--max_width", default=120, type=int, help="Maximum display width")
@@ -74,10 +91,18 @@ def cli(ctx, max_width, db_path):
     help="Exclude concepts tagged by these tags",
 )
 @click.option(
-    "-r", "--relation", "relation", type=(str, ReferenceType()), multiple=True
+    "-r",
+    "--relation",
+    "relation",
+    type=(RelationType(), ReferenceType()),
+    multiple=True,
 )
 @click.option(
-    "-R", "--not-relation", "not_relation", type=(str, ReferenceType()), multiple=True
+    "-R",
+    "--not-relation",
+    "not_relation",
+    type=(RelationType(), ReferenceType()),
+    multiple=True,
 )
 @click.option(
     "-f",
@@ -180,7 +205,7 @@ def tag(ctx, concept, tags):
 
 @cli.command("relation")
 @click.argument("subject", type=ReferenceType())
-@click.argument("relation")
+@click.argument("relation", type=RelationType())
 @click.argument("object", type=ReferenceType())
 @utils.requires_db
 def relation(ctx, subject, relation, object):
