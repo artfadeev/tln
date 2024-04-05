@@ -26,11 +26,15 @@ def list_default(ctx, connection):
         click.echo(f"{current_date*(current_date!=previous_date):11}{time:6}", nl=False)
 
         text = (f"[{row['tags']}] " if row["tags"] else "") + row["label"]
-        lines = textwrap.wrap(
-            text,
-            width=ctx.obj["max_width"] - date_col_width - time_col_width,
-            break_long_words=False,  # don't break links
-        )
+        lines = [
+            line
+            for paragraph in text.splitlines()
+            for line in textwrap.wrap(
+                paragraph,
+                width=ctx.obj["max_width"] - date_col_width - time_col_width,
+                break_long_words=False,
+            )
+        ]
         click.echo(lines[0])
         for line in lines[1:]:
             click.echo(" " * (date_col_width + time_col_width) + line)

@@ -68,6 +68,17 @@ def test_show(data_path, runner=None):
 
 
 @provide_db
+def test_show_multiline(data_path, runner=None):
+    text = "first paragraph\nsecond paragraph"
+    runner.invoke(cli, ["--db_path", "test.db", "add", text])
+    result_lines = runner.invoke(
+        cli, ["--db_path", "test.db", "show", "/"]
+    ).output.splitlines()
+    assert "first paragraph" in result_lines
+    assert "second paragraph" in result_lines
+
+
+@provide_db
 def test_add(data_path, runner=None):
     runner.invoke(cli, ["--db_path", "test.db", "add", "NEW ONE"])
     assert "NEW ONE" in runner.invoke(cli, ["--db_path", "test.db", "list"]).output
@@ -189,6 +200,20 @@ def test_list_max_width(data_path, runner=None):
         cli, ["--db_path", "test.db", "--max_width", "50", "list"]
     ).output.splitlines()
     assert all(len(line) <= 50 for line in result_lines)
+
+
+@provide_db
+def test_list_max_width(data_path, runner=None):
+    text = "multiline first\nmultiline second"
+    runner.invoke(cli, ["--db_path", "test.db", "add", text]).exit_code == 0
+    result_lines = [
+        line[len("YYYY.MM.DD HH:MM ") :]
+        for line in runner.invoke(
+            cli, ["--db_path", "test.db", "list", "multiline"]
+        ).output.splitlines()
+    ]
+    assert "multiline first" in result_lines
+    assert "multiline second" in result_lines
 
 
 @provide_db

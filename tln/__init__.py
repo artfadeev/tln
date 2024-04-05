@@ -167,7 +167,10 @@ def show(ctx, reference):
         click.echo(timestamp)
 
     click.echo()
-    click.echo(textwrap.fill(label, width=ctx.obj["max_width"], break_long_words=False))
+    for line in label.splitlines():
+        click.echo(
+            textwrap.fill(line, width=ctx.obj["max_width"], break_long_words=False)
+        )
     click.echo()
 
     for row in connection.execute(db.query("show_relations"), {"id": id_}):
