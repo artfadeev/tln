@@ -133,8 +133,9 @@ def list_(
 
 @cli.command("show")
 @click.argument("reference", type=ReferenceType(), nargs=-1)
+@click.option("--no-wrap", is_flag=True, default=False, help="Don't wrap long lines")
 @utils.requires_db
-def show(ctx, reference):
+def show(ctx, reference, no_wrap):
     """Show information about a concept by a reference
 
     \b
@@ -159,7 +160,7 @@ def show(ctx, reference):
 
     # TODO: proper transaction control
     _, timestamp, label = connection.execute(
-        db.query("show_concept"), {"id": id_}
+        db.query("show/show"), {"id": id_}
     ).fetchone()
 
     click.echo(id_)
@@ -167,14 +168,29 @@ def show(ctx, reference):
         click.echo(timestamp)
 
     click.echo()
-    for line in label.splitlines():
-        click.echo(
-            textwrap.fill(line, width=ctx.obj["max_width"], break_long_words=False)
-        )
+    if not no_wrap:
+        for line in label.splitlines():
+            click.echo(
+                textwrap.fill(line, width=ctx.obj["max_width"], break_long_words=False)
+            )
+    else:
+        click.echo(label)
     click.echo()
 
-    for row in connection.execute(db.query("show_relations"), {"id": id_}):
-        click.echo(f"{row['relation']}: {row['label']}")
+    for row in connection.execute(db.query("show/marks"), {"id": id_}):
+        click.echo(f"mark: {row['name']}")
+    for row in connection.execute(db.query("show/relations"), {"id": id_}):
+        click.echo(f"this is {row['relation']}: {row['label']}")
+
+    object_statistics = connection.execute(
+        db.query("show/object_statistics"), {"id": id_}
+    ).fetchall()
+    if object_statistics:
+        click.echo()
+        for row in object_statistics:
+            click.echo(
+                f"{row['count']} {'concepts are' if row['count']>1 else 'concept is'} {row['relation']} this"
+            )
 
 
 @cli.command("tag")

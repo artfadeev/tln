@@ -52,14 +52,14 @@ def test_sql_mark_concept(geo_db):
 
 
 def test_sql_show_concept(geo_db):
-    result = geo_db.execute(query("show_concept"), {"id": "capital_of_uk"}).fetchone()
+    result = geo_db.execute(query("show/show"), {"id": "capital_of_uk"}).fetchone()
     assert result["label"] == "London is the capital of Great Britain"
     assert result["id"] == "capital_of_uk"
     assert result["timestamp"].year == 2000
 
 
 def test_sql_show_relations(geo_db):
-    result = geo_db.execute(query("show_relations"), {"id": "tag_newyork"})
+    result = geo_db.execute(query("show/relations"), {"id": "tag_newyork"})
     entries = set((row["relation"], row["id"]) for row in result)
 
     assert entries == {
